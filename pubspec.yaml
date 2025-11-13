@@ -1,0 +1,149 @@
+name: wafy
+description: "A new Flutter project."
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+  # State management & navigation
+  get:
+  # Functional utils
+  dartz:
+
+  # Localization & formatting
+  intl:
+  # Local storage
+  shared_preferences:
+  hive_flutter:
+  # ESC/POS printing (Bluetooth/Wi‑Fi/TCP/USB) - temporarily disabled
+  # flutter_pos_printer_platform:
+  # ESC/POS commands generator - temporarily disabled
+  # esc_pos_utils_plus:
+  # Permissions
+  permission_handler:
+  # For Freezed annotations
+  freezed_annotation:
+  # Screen adaptation
+  flutter_screenutil: ^5.9.3
+  # HTTP & API
+  dio: ^5.4.0
+  pretty_dio_logger: ^1.4.0
+  retrofit: ^4.0.3
+  json_annotation: ^4.8.1
+  logger: ^2.0.2+1
+  # Equality
+  equatable: ^2.0.5
+  cached_network_image: ^3.4.1
+  # Skeleton loading
+  skeletonizer: ^2.1.0+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+  # Code generation for Freezed
+  build_runner:
+  freezed:
+  # Code generation for Retrofit & JSON
+  retrofit_generator: ^8.0.4
+  json_serializable: ^6.7.1
+  # Native splash screen and launcher icons - temporarily disabled
+  # flutter_native_splash:
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/images/
+    - assets/images/svg/
+
+  fonts:
+    - family: CustomIconsDataType
+      fonts:
+        - asset: assets\fonts\CustomIconsDataType.ttf
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo/static/Cairo-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Cairo/static/Cairo-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Cairo/static/Cairo-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Cairo/static/Cairo-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Cairo/static/Cairo-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Cairo/static/Cairo-Black.ttf
+          weight: 900
+        - asset: assets/fonts/Cairo/static/Cairo-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Cairo/static/Cairo-ExtraLight.ttf
+          weight: 200
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins/Poppins-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/Poppins/Poppins-ThinItalic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/Poppins/Poppins-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/Poppins/Poppins-ExtraLightItalic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/Poppins/Poppins-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Poppins/Poppins-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Poppins/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins/Poppins-Italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/Poppins/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins/Poppins-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/Poppins/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins/Poppins-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/Poppins/Poppins-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Poppins/Poppins-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Poppins/Poppins-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Poppins/Poppins-ExtraBoldItalic.ttf
+          weight: 800
+          style: italic
+        - asset: assets/fonts/Poppins/Poppins-Black.ttf
+          weight: 900
+        - asset: assets/fonts/Poppins/Poppins-BlackItalic.ttf
+          weight: 900
+          style: italic
+# flutter_native_splash:
+#   color: "#FF8000"
+#   image: assets/images/images/wafy_logo.png
+#   android: true
+#   ios: true
+#   web: false
+
+# flutter_icons:
+#   android: true
+#   ios: true
+#   image_path: assets/images/images/wafy_logo.png

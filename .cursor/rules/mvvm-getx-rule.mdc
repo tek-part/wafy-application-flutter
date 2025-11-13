@@ -1,0 +1,222 @@
+---
+alwaysApply: true
+name: "Cursor Rule: GetX MVVM (Feature-First) for Flutter"
+description: "Enforce GetX-based MVVM with feature-first structure, replacing Bloc in new/edited code while keeping domain/data layers intact."
+---
+
+## Purpose
+
+Adopt GetX MVVM (feature-first) for all new Flutter UI/presentation code and for refactors touching presentation. Domain and data layers remain unchanged.
+
+## When this rule applies
+
+- Creating or modifying presentation/UI, navigation, DI, or page/controller/state code.
+- Migrating from Bloc/Cubit to GetX in any feature.
+
+## Folder layout (feature-first)
+
+Use this structure per feature; add more features as needed.
+
+```text
+lib/
+├─ core/
+│  ├─ error/
+│  ├─ network/
+│  ├─ utils/
+│  └─ widgets/
+├─ features/
+│  └─ user/
+│     ├─ data/
+│     │  ├─ datasources/
+│     │  ├─ models/
+│     │  └─ repositories/
+│     ├─ domain/
+│     │  ├─ entities/
+│     │  ├─ repositories/
+│     │  └─ usecases/
+│     └─ presentation/
+│        ├─ pages/
+│        │  └─ user_page.dart
+│        ├─ controllers/
+│        │  └─ user_controller.dart
+│        ├─ states/
+│        │  └─ user_view_state.dart
+│        ├─ bindings/
+│        │  └─ user_binding.dart
+│        └─ widgets/
+└─ app/
+   ├─ routes/app_pages.dart
+   └─ routes/app_routes.dart
+```
+
+## Conventions and templates
+
+### State (Freezed union)
+
+```dart
+@freezed
+class UserViewState with _$UserViewState {
+  const factory UserViewState.initial() = _Initial;
+  const factory UserViewState.loading() = _Loading;
+  const factory UserViewState.success(User user) = _Success;
+  const factory UserViewState.error(Failure failure) = _Error;
+}
+```
+
+### Controller (ViewModel)
+
+```dart
+class UserController extends GetxController {
+  final GetUser _getUser;
+
+  UserController(this._getUser);
+
+  final _state = const UserViewState.initial().obs;
+  UserViewState get state => _state.value;
+
+  String? _currentUserId;
+
+  Future<void> loadUser(String id) async {
+    _currentUserId = id;
+    _state.value = const UserViewState.loading();
+    final result = await _getUser(id);
+    result.fold(
+      (f) => _state.value = UserViewState.error(f),
+      (u) => _state.value = UserViewState.success(u),
+    );
+  }
+
+  Future<void> refreshUser() async {
+    if (_currentUserId == null) return;
+    _state.value = const UserViewState.loading();
+    final result = await _getUser(_currentUserId!);
+    result.fold(
+      (f) => _state.value = UserViewState.error(f),
+      (u) => _state.value = UserViewState.success(u),
+    );
+  }
+}
+```
+
+### Binding (DI)
+
+```dart
+class UserBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<UserController>(() => UserController(Get.find<GetUser>()));
+  }
+}
+```
+
+### View
+
+```dart
+class UserPage extends GetView<UserController> {
+  final String userId;
+  const UserPage({super.key, required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    controller.loadUser(userId);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Details'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: controller.refreshUser,
+          ),
+        ],
+      ),
+      body: Obx(() {
+        return controller.state.when(
+          initial: () => const SizedBox(),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          success: (user) => UserDetailsWidget(user: user),
+          error: (failure) => FailureView(failure: failure),
+        );
+      }),
+    );
+  }
+}
+```
+
+### Routing
+
+```dart
+abstract class Routes {
+  static const user = '/user';
+}
+
+class AppPages {
+  static final pages = <GetPage>[
+    GetPage(
+      name: Routes.user,
+      page: () {
+        final id = Get.parameters['id']!;
+        return UserPage(userId: id);
+      },
+      binding: UserBinding(),
+    ),
+  ];
+}
+```
+
+### App entry
+
+```dart
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return GetMaterialApp(
+      getPages: AppPages.pages,
+      initialRoute: '/user?id=123',
+    );
+  }
+}
+```
+
+## Bloc → GetX equivalence
+
+| Bloc Concept | GetX Equivalent             |
+| ------------ | --------------------------- |
+| Bloc/Cubit   | GetxController              |
+| Event        | Public method on Controller |
+| State        | Rx<FreezedState>            |
+| BlocProvider | Binding + GetView           |
+| BlocBuilder  | Obx                         |
+| BlocListener | ever / once / workers       |
+| Navigator    | Get.to / Get.offAll         |
+
+## Notes
+
+- Domain and Data layers remain unchanged
+- Use Dartz Either and Failure as-is
+- Bindings may use GetX DI or GetIt
+- Use Obx for reactive rebuilds; avoid setState in pages
+- Testing: prefer Get.testMode for GetX-specific tests
+
+## Enforcement (Do / Don’t)
+
+- Do: Keep domain/data untouched when migrating presentation
+- Do: Define Freezed union states in `presentation/states`
+- Do: Expose state from controllers via `.obs` and `Obx`
+- Do: Register controllers in `bindings` with `Get.lazyPut`
+- Do: Centralize routing in `app/routes` with `GetPage`
+- Don’t: Introduce Bloc/Provider in new code under this rule
+- Don’t: Mutate UI state with setState in views; use controller state
+- Don’t: Bypass bindings by instantiating controllers in widgets
+
+## References
+
+- GetX docs: https://pub.dev/packages/get
+- Freezed: https://pub.dev/packages/freezed
+- Dartz: https://pub.dev/packages/dartz
+- Flutter Navigation: https://docs.flutter.dev/development/ui/navigation
