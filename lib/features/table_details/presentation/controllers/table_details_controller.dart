@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../domain/entities/table_order_item.dart';
-import '../../domain/entities/pending_order_item.dart';
+import 'package:wafy/app/routes/app_routes.dart';
+import 'package:wafy/core/services/user_service.dart';
+import 'package:wafy/features/home/domain/entities/table_entity.dart';
+import 'package:wafy/features/home/presentation/controllers/tables_controller.dart';
+import 'package:wafy/features/menu/domain/repositories/menu_repository.dart';
+
 import '../../domain/entities/invoice_detail.dart';
 import '../../domain/entities/invoice_main.dart';
-import '../../domain/usecases/get_table_orders.dart';
-import '../../domain/usecases/get_table_invoice.dart';
+import '../../domain/entities/pending_order_item.dart';
+import '../../domain/entities/table_order_item.dart';
 import '../../domain/usecases/create_invoice.dart';
 import '../../domain/usecases/get_last_invoice_by_table_id.dart';
+import '../../domain/usecases/get_table_invoice.dart';
+import '../../domain/usecases/get_table_orders.dart';
 import '../../domain/usecases/update_invoice.dart';
 import '../../domain/usecases/update_table_status.dart';
 import '../states/table_orders_state.dart';
-import 'package:wafy/features/home/domain/entities/table_entity.dart';
-import 'package:wafy/core/services/user_service.dart';
-import 'package:wafy/features/menu/domain/repositories/menu_repository.dart';
-import 'package:wafy/features/home/presentation/controllers/tables_controller.dart';
 
 class TableDetailsController extends GetxController {
   final GetTableOrders _getTableOrders;
@@ -44,9 +46,16 @@ class TableDetailsController extends GetxController {
   var orders = <TableOrderItem>[].obs;
   var currentTableId = Rxn<int>();
   var currentTable = Rxn<TableEntity>();
+  var currentTableName = ''.obs;
 
-  // قائمة العناصر المضافة محلياً (قبل الحفظ)
+  // قائمة العناصر المضافة محلياً (قبل الحفظ) - للتوافق مع الكود القديم
   var pendingItems = <PendingOrderItem>[].obs;
+
+  // قائمة العناصر المضافة حديثاً (لم يتم حفظها بعد)
+  var newPendingItems = <PendingOrderItem>[].obs;
+
+  // قائمة العناصر المحفوظة في الفاتورة
+  var savedItems = <PendingOrderItem>[].obs;
 
   // معلومات الفاتورة
   var currentInvoiceId = Rxn<int>();
@@ -54,10 +63,23 @@ class TableDetailsController extends GetxController {
   var isSavingInvoice = false.obs;
   var isUpdatingStatus = false.obs;
 
-  Future<void> loadTableDetails(int tableId) async {
+  Future<void> loadTableDetails(int tableId, {String? tableName}) async {
+    // إذا كانت البيانات محملة لنفس الطاولة، لا حاجة لإعادة التحميل
+    if (currentTableId.value == tableId && savedItems.isNotEmpty) {
+      // فقط تحديث اسم الطاولة إذا كان مختلفاً
+      if (tableName != null && currentTableName.value != tableName) {
+        currentTableName.value = tableName;
+      }
+      return;
+    }
+
     currentTableId.value = tableId;
+    if (tableName != null) {
+      currentTableName.value = tableName;
+    }
     // البيانات تأتي من loadLastInvoice، لا حاجة لـ loadTableOrders
-    await loadLastInvoice(tableId);
+    // استخدام clearNewItems: false للحفاظ على العناصر المضافة حديثاً
+    await loadLastInvoice(tableId, clearNewItems: false);
   }
 
   Future<void> loadTableOrders(int tableId) async {
@@ -129,59 +151,77 @@ class TableDetailsController extends GetxController {
       return;
     }
 
-    // إضافة العنصر للقائمة المحلية
-    final pendingItem = PendingOrderItem(
-      menuItemId: menuItemId,
-      itemName: itemName,
-      price: price,
-      quantity: quantity,
-      itemSizeId: itemSizeId,
-      sizeName: sizeName,
-      notes: notes,
+    // التحقق من وجود عنصر بنفس menuItemId و itemSizeId في newPendingItems
+    final existingItemIndex = newPendingItems.indexWhere(
+      (item) => item.menuItemId == menuItemId && item.itemSizeId == itemSizeId,
     );
 
-    print(
-      'PendingItem created: ${pendingItem.itemName}, ${pendingItem.price}, ${pendingItem.quantity}',
-    );
-    print('pendingItems length before: ${pendingItems.length}');
+    if (existingItemIndex != -1) {
+      // إذا وُجد عنصر بنفس menuItemId و itemSizeId، زيادة الكمية فقط
+      final existingItem = newPendingItems[existingItemIndex];
+      newPendingItems[existingItemIndex] = PendingOrderItem(
+        menuItemId: existingItem.menuItemId,
+        itemName: existingItem.itemName,
+        price: existingItem.price,
+        quantity: existingItem.quantity + quantity,
+        itemSizeId: existingItem.itemSizeId,
+        sizeName: existingItem.sizeName,
+        notes: existingItem.notes, // الاحتفاظ بملاحظات العنصر الأول
+      );
+      print(
+        'Updated existing item quantity: ${newPendingItems[existingItemIndex].quantity}',
+      );
+    } else {
+      // إذا لم يوجد، إضافة عنصر جديد
+      final pendingItem = PendingOrderItem(
+        menuItemId: menuItemId,
+        itemName: itemName,
+        price: price,
+        quantity: quantity,
+        itemSizeId: itemSizeId,
+        sizeName: sizeName,
+        notes: notes,
+      );
 
-    pendingItems.add(pendingItem);
+      print(
+        'PendingItem created: ${pendingItem.itemName}, ${pendingItem.price}, ${pendingItem.quantity}',
+      );
+      print('newPendingItems length before: ${newPendingItems.length}');
 
-    print('pendingItems length after: ${pendingItems.length}');
+      newPendingItems.add(pendingItem);
+
+      print('newPendingItems length after: ${newPendingItems.length}');
+    }
+
+    // تحديث pendingItems للتوافق مع الكود القديم
+    pendingItems.value = [...savedItems, ...newPendingItems];
+
     print('=== addItemToTable completed ===');
 
-    // إظهار dialog عند إضافة العنصر بنجاح
-    Get.dialog(
-      AlertDialog(
-        title: Text(
-          'نجح',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        content: Text('تم إضافة $itemName بنجاح'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Get.back(); // إغلاق dialog
-            },
-            child: Text('موافق'),
-          ),
-        ],
-      ),
-      barrierDismissible: true,
+    // إظهار رسالة نجاح باستخدام snackbar
+    Get.snackbar(
+      'نجح',
+      'تم إضافة $itemName بنجاح إلى الفاتورة',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: Duration(seconds: 2),
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
     );
   }
 
   void removePendingItem(int index) {
-    if (index >= 0 && index < pendingItems.length) {
-      pendingItems.removeAt(index);
+    if (index >= 0 && index < newPendingItems.length) {
+      newPendingItems.removeAt(index);
+      // تحديث pendingItems للتوافق مع الكود القديم
+      pendingItems.value = [...savedItems, ...newPendingItems];
       Get.snackbar('نجح', 'تم حذف العنصر');
     }
   }
 
   void updatePendingItemQuantity(int index, int newQuantity) {
-    if (index >= 0 && index < pendingItems.length && newQuantity > 0) {
-      final item = pendingItems[index];
-      pendingItems[index] = PendingOrderItem(
+    if (index >= 0 && index < newPendingItems.length && newQuantity > 0) {
+      final item = newPendingItems[index];
+      newPendingItems[index] = PendingOrderItem(
         menuItemId: item.menuItemId,
         itemName: item.itemName,
         price: item.price,
@@ -190,6 +230,8 @@ class TableDetailsController extends GetxController {
         sizeName: item.sizeName,
         notes: item.notes,
       );
+      // تحديث pendingItems للتوافق مع الكود القديم
+      pendingItems.value = [...savedItems, ...newPendingItems];
     }
   }
 
@@ -199,11 +241,36 @@ class TableDetailsController extends GetxController {
     }
   }
 
+  // المجموع الكلي للعناصر المضافة حديثاً فقط
   double get totalPrice {
-    return pendingItems.fold<double>(0.0, (sum, item) => sum + item.totalPrice);
+    return newPendingItems.fold<double>(
+      0.0,
+      (sum, item) => sum + item.totalPrice,
+    );
   }
 
-  Future<void> loadLastInvoice(int tableId) async {
+  // المجموع الكلي لجميع العناصر (المحفوظة + الجديدة)
+  double get totalPriceAll {
+    final savedTotal = savedItems.fold<double>(
+      0.0,
+      (sum, item) => sum + item.totalPrice,
+    );
+    final newTotal = newPendingItems.fold<double>(
+      0.0,
+      (sum, item) => sum + item.totalPrice,
+    );
+    final total = savedTotal + newTotal;
+    print('=== totalPriceAll calculation ===');
+    print('savedItems count: ${savedItems.length}');
+    print('savedTotal: $savedTotal');
+    print('newPendingItems count: ${newPendingItems.length}');
+    print('newTotal: $newTotal');
+    print('total: $total');
+    print('================================');
+    return total;
+  }
+
+  Future<void> loadLastInvoice(int tableId, {bool clearNewItems = true}) async {
     isLoadingInvoice.value = true;
     _invoiceState.value = const TableOrdersState.loading();
     try {
@@ -212,7 +279,11 @@ class TableDetailsController extends GetxController {
         (failure) {
           // إذا لم توجد فاتورة، لا بأس
           currentInvoiceId.value = null;
-          pendingItems.clear();
+          savedItems.clear();
+          if (clearNewItems) {
+            newPendingItems.clear();
+          }
+          pendingItems.value = [...savedItems, ...newPendingItems];
           _invoiceState.value = TableOrdersState.error(failure.message);
         },
         (invoiceData) {
@@ -237,8 +308,25 @@ class TableDetailsController extends GetxController {
             );
           }).toList();
 
-          // تحديث pendingItems بالعناصر المحملة
-          pendingItems.value = loadedItems;
+          // حفظ العناصر المحملة في savedItems (العناصر المحفوظة)
+          savedItems.value = loadedItems;
+          // مسح العناصر المضافة حديثاً فقط إذا كان clearNewItems = true
+          if (clearNewItems) {
+            newPendingItems.clear();
+          }
+          // تحديث pendingItems للتوافق مع الكود القديم
+          pendingItems.value = [...savedItems, ...newPendingItems];
+
+          print('=== loadLastInvoice completed ===');
+          print('savedItems count: ${savedItems.length}');
+          print('newPendingItems count: ${newPendingItems.length}');
+          for (var item in savedItems) {
+            print(
+              'Item: ${item.itemName}, Price: ${item.price}, Quantity: ${item.quantity}, Total: ${item.totalPrice}',
+            );
+          }
+          print('totalPriceAll: $totalPriceAll');
+          print('==================================');
 
           // تحديث invoiceState
           _invoiceState.value = TableOrdersState.success([]);
@@ -246,6 +334,10 @@ class TableDetailsController extends GetxController {
       );
     } catch (e) {
       currentInvoiceId.value = null;
+      savedItems.clear();
+      // لا نمسح newPendingItems في حالة الخطأ إذا كان clearNewItems = false
+      // لكن في حالة الخطأ، يجب مسحها دائماً
+      newPendingItems.clear();
       pendingItems.clear();
       _invoiceState.value = TableOrdersState.error('خطأ غير متوقع: $e');
     } finally {
@@ -260,8 +352,8 @@ class TableDetailsController extends GetxController {
       return;
     }
 
-    if (pendingItems.isEmpty) {
-      Get.snackbar('خطأ', 'لا توجد عناصر للحفظ');
+    if (newPendingItems.isEmpty) {
+      Get.snackbar('خطأ', 'لا توجد عناصر جديدة للحفظ');
       return;
     }
 
@@ -276,8 +368,11 @@ class TableDetailsController extends GetxController {
     isSavingInvoice.value = true;
 
     try {
-      // تحويل pendingItems إلى InvoiceDetail
-      final details = pendingItems.map((item) {
+      // دمج savedItems مع newPendingItems عند الحفظ
+      final allItems = [...savedItems, ...newPendingItems];
+
+      // تحويل جميع العناصر إلى InvoiceDetail
+      final details = allItems.map((item) {
         return InvoiceDetail(
           itemId: item.menuItemId,
           quantity: item.quantity.toDouble(),
@@ -306,33 +401,33 @@ class TableDetailsController extends GetxController {
         },
         (invoiceId) async {
           currentInvoiceId.value = invoiceId;
-          pendingItems.clear();
-
-          // إظهار dialog النجاح
-          Get.dialog(
-            AlertDialog(
-              title: Text(
-                'نجح',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              content: Text('تم إنشاء الفاتورة بنجاح'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Get.back(); // إغلاق dialog
-                  },
-                  child: Text('موافق'),
-                ),
-              ],
-            ),
-            barrierDismissible: true,
-          );
+          // نقل العناصر المضافة حديثاً إلى المحفوظة ومسحها
+          savedItems.value = [...savedItems, ...newPendingItems];
+          newPendingItems.clear();
+          pendingItems.value = savedItems;
 
           // إعادة تحميل الطلبات
           await loadTableOrders(targetTableId);
 
           // استدعاء API لجلب آخر فاتورة للطاولة
           await loadLastInvoice(targetTableId);
+
+          // تحديث حالة جميع الطاولات في شاشة الرئيسية
+          if (Get.isRegistered<TablesController>()) {
+            final tablesController = Get.find<TablesController>();
+            await tablesController.refreshTables();
+          }
+
+          // الانتقال إلى صفحة الفاتورة (push بدلاً من offNamed)
+          Get.toNamed(
+            Routes.tableInvoice,
+            arguments: {
+              'tableId': targetTableId,
+              'tableName': currentTableName.value.isNotEmpty
+                  ? currentTableName.value
+                  : 'طاولة $targetTableId',
+            },
+          );
         },
       );
     } catch (e) {
@@ -364,8 +459,6 @@ class TableDetailsController extends GetxController {
         (response) {
           final message =
               response['message'] as String? ?? 'تم تحديث حالة الطاولة بنجاح';
-          final newStatusName = response['newStatusName'] as String? ?? '';
-          final oldStatusName = response['oldStatusName'] as String? ?? '';
 
           Get.snackbar('نجح', message);
 
@@ -374,6 +467,10 @@ class TableDetailsController extends GetxController {
             final tablesController = Get.find<TablesController>();
             tablesController.refreshTableStatus(targetTableId);
           }
+
+          // الانتقال إلى Home بعد تغيير حالة الطاولة بنجاح
+          // استخدام Get.offNamed بدلاً من Get.offAllNamed للحفاظ على الـ controllers المسجلة بشكل permanent
+          Get.offNamed(Routes.home);
         },
       );
     } catch (e) {

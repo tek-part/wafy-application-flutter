@@ -43,8 +43,20 @@ class PrintOrderPage extends StatelessWidget {
                     margin: EdgeInsets.only(bottom: 8.h),
                     child: ListTile(
                       leading: NumText('${index + 1}'),
-                      title: Text(_getItemName(index)),
-                      trailing: const NumText('40 د.ع'),
+                      title: Text(
+                        _getItemName(index),
+                        style: FontConstants.cairoStyle(
+                          fontSize: 16.sp,
+                          weight: FontConstants.cairoMedium,
+                        ),
+                      ),
+                      trailing: NumText(
+                        '40 د.ع',
+                        style: FontConstants.poppinsStyle(
+                          fontSize: 16.sp,
+                          weight: FontConstants.poppinsBold,
+                        ),
+                      ),
                     ),
                   );
                 },

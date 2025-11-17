@@ -32,13 +32,13 @@ class CompanyInfoWidget extends GetView<LoginController> {
         loading: () => true,
         orElse: () => false,
       );
-      
+
       // إخفاء الخطأ إذا كان خطأ شبكة
       final hasError = controller.state.maybeWhen(
         error: (message) => true,
         orElse: () => false,
       );
-      
+
       return isLoading && company == null && !hasError
           ? SizedBox.shrink()
           : Column(

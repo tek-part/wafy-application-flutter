@@ -125,7 +125,13 @@ class OrdersPageItem extends StatelessWidget {
                     borderRadius: BorderRadiusGeometry.circular(18.r),
                   ),
                 ),
-                child: const Text('عرض'),
+                child: Text(
+                  'عرض',
+                  style: FontConstants.cairoStyle(
+                    fontSize: 12.sp,
+                    weight: FontConstants.cairoMedium,
+                  ),
+                ),
               ),
             ),
           ],

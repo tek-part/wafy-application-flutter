@@ -210,7 +210,7 @@ class _AddItemDialogMenuState extends State<AddItemDialogMenu> {
                   child: TextField(
                     controller: controller.noteController,
                     decoration: InputDecoration(
-                      hintText: 'الوصف',
+                      hintText: 'ملاحظات',
                       hintStyle: FontConstants.cairoStyle(
                         fontSize: 14.sp,
                         color: AppColors.grayDarker,
@@ -230,7 +230,6 @@ class _AddItemDialogMenuState extends State<AddItemDialogMenu> {
                 // Add Button
                 SizedBox(
                   width: double.infinity,
-                  height: 48.h,
                   child: ElevatedButton(
                     onPressed: () {
                       // التحقق من menuMode وإضافة العنصر للطاولة إذا كان addToTable
@@ -274,6 +273,11 @@ class _AddItemDialogMenuState extends State<AddItemDialogMenu> {
                                       tableId;
                                 }
 
+                                // إغلاق dialog الإضافة أولاً
+                                Get.back();
+
+                                // استدعاء addItemToTable بعد إغلاق dialog
+                                // سيتم إظهار snackbar من addItemToTable
                                 tableController.addItemToTable(
                                   menuItemId: widget.menuItemId,
                                   itemName: widget.name,
@@ -287,9 +291,6 @@ class _AddItemDialogMenuState extends State<AddItemDialogMenu> {
                                       : null,
                                   tableId: tableId,
                                 );
-                                // إغلاق dialog الإضافة أولاً
-                                Get.back();
-                                // سيتم إظهار dialog النجاح من addItemToTable
                                 return;
                               }
                             }

@@ -17,6 +17,9 @@ class TablesController extends GetxController {
 
   var tables = <TableEntity>[].obs;
   var selectedFloorId = Rxn<int>();
+  
+  // حالة التصفية: null = all, 0 = متاح, 1 = مشغول, 2 = انتظار الدفع
+  var selectedStatusFilter = Rxn<int>();
 
   StreamSubscription<List<TableStatusEntity>>? _statusStreamSubscription;
   Timer? _statusTimer;
@@ -76,12 +79,26 @@ class TablesController extends GetxController {
     return tables.where((table) => table.status != 1).toList();
   }
 
+  // تصفية الطاولات حسب الحالة المحددة
+  List<TableEntity> getFilteredTables() {
+    if (selectedStatusFilter.value == null) {
+      // إذا كانت الحالة null، إرجاع جميع الطاولات
+      return tables;
+    }
+    return tables.where((table) => table.status == selectedStatusFilter.value).toList();
+  }
+
+  // تحديد حالة التصفية
+  void setStatusFilter(int? status) {
+    selectedStatusFilter.value = status;
+  }
+
   // بدء stream لتحديث حالة الطاولات كل 90 ثانية
   void _startStatusStream(int floorId) {
     _stopStatusStream(); // إيقاف أي stream سابق
 
     // إنشاء stream يطلب الـ API كل 90 ثانية
-    final stream = Stream.periodic(const Duration(seconds: 90), (_) => floorId)
+    final stream = Stream.periodic(const Duration(seconds: 60), (_) => floorId)
         .asyncMap((floorId) async {
           try {
             final result = await _getTablesStatus(floorId);

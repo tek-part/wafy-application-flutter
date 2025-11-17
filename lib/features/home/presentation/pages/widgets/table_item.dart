@@ -11,8 +11,9 @@ import 'package:wafy/features/home/domain/entities/table_entity.dart';
 
 class TableItem extends StatelessWidget {
   final TableEntity table;
+  final bool isTablet;
 
-  const TableItem({super.key, required this.table});
+  const TableItem({super.key, required this.table, this.isTablet = false});
 
   @override
   Widget build(BuildContext context) {
@@ -28,54 +29,72 @@ class TableItem extends StatelessWidget {
           color: AppColors.white,
           elevation: 5,
           child: Padding(
-            padding: EdgeInsets.all(8.w),
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
+                // صف الحالة والوقت
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
                   children: [
-                    NumText(
-                      _getTimeDisplay(),
-                      style: FontConstants.poppinsStyle(
-                        fontSize: 12.sp,
-                        color: AppColors.text,
-                        weight: FontConstants.poppinsBold,
+                    Flexible(
+                      child: NumText(
+                        _getTimeDisplay(),
+                        style: FontConstants.poppinsStyle(
+                          fontSize: 16.sp,
+                          color: AppColors.text,
+                          weight: FontConstants.cairoSemiBold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    SizedBox(width: 4.w),
                     Container(
-                      width: 20.h,
-                      height: 20.h,
+                      width: 20.w,
+                      height: 20.w,
                       decoration: BoxDecoration(
                         image: DecorationImage(
                           image: AssetImage(_getStatusImage()),
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const Spacer(),
-                NumText(
-                  table.nameAr,
-                  style: FontConstants.poppinsStyle(
-                    fontSize: 24.sp,
-                    weight: FontConstants.poppinsBold,
+                SizedBox(height: 4.h),
+                // رقم الطاولة
+                Expanded(
+                  child: Center(
+                    child: NumText(
+                      table.nameAr,
+                      style: FontConstants.poppinsStyle(
+                        fontSize: 20.sp,
+                        weight: FontConstants.cairoBold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: NumText(
-                        '${NumberFormatter.formatPrice(table.total)} د.ع',
-                        style: FontConstants.poppinsStyle(
-                          fontSize: 10.sp,
-                          weight: FontConstants.poppinsBold,
-                          color: AppColors.text,
-                        ),
-                      ),
+                SizedBox(height: 4.h),
+                // السعر
+                Flexible(
+                  child: NumText(
+                    '${NumberFormatter.formatPrice(table.total)} د.ع',
+                    style: FontConstants.poppinsStyle(
+                      fontSize: 16.sp,
+                      weight: FontConstants.cairoBold,
+                      color: AppColors.text,
                     ),
-                  ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ),
@@ -87,11 +106,11 @@ class TableItem extends StatelessWidget {
 
   String _getStatusImage() {
     switch (table.status) {
-      case 0: // متاح (أخضر)
+      case 1: // متاح (أخضر)
         return AppImages.emptyStateCircle;
-      case 2: // منتظر (أصفر)
+      case 3: // منتظر (أصفر)
         return AppImages.waitingPayStateCircle;
-      case 1: // مشغول (أحمر)
+      case 2: // مشغول (أحمر)
         return AppImages.workingStateCircle;
       default:
         return AppImages.emptyStateCircle;
@@ -100,11 +119,11 @@ class TableItem extends StatelessWidget {
 
   String _getTimeDisplay() {
     switch (table.status) {
-      case 0: // متاح (أخضر)
+      case 1: // متاح (أخضر)
         return "متاح";
-      case 2: // منتظر (أصفر)
-        return "منتظر";
-      case 1: // مشغول (أحمر)
+      case 3: // منتظر (أصفر)
+        return "فاتورة";
+      case 2: // مشغول (أحمر)
         return "مشغول";
       default:
         return "متاح";

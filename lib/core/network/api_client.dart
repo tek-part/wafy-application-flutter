@@ -56,7 +56,7 @@ abstract class ApiClient {
     @Path('rstableId') int rstableId,
   );
 
-  @PUT('${ApiConstants.updateInvoice}/{invoiceId}')
+  @POST('${ApiConstants.updateInvoice}/{invoiceId}')
   Future<CreateInvoiceResponseModel> updateInvoice(
     @Path('invoiceId') int invoiceId,
     @Body() InvoiceRequestModel request,

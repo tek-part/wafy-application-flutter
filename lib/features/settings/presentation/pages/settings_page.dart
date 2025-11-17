@@ -19,6 +19,7 @@ class SettingsPage extends GetView<SettingsController> {
             children: [
               CustomAppBar(
                 title: 'الإعدادات',
+                showBackButton: true,
                 onPressed: () {
                   Get.back();
                 },
@@ -121,4 +122,3 @@ class SettingsPage extends GetView<SettingsController> {
     );
   }
 }
-

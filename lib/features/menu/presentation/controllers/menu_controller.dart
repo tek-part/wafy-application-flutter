@@ -47,6 +47,11 @@ class FullMenuController extends GetxController {
   final RxString preloadMessage = 'جاري تحميل البيانات...'.obs;
   final RxBool isPreloading = false.obs;
 
+  // Search functionality
+  final TextEditingController searchController = TextEditingController();
+  final RxList<MenuItem> filteredItems = <MenuItem>[].obs;
+  final RxBool isSearching = false.obs;
+
   // Getters للوصول إلى state من controllers الفرعية
   MenuCategoriesState get categoriesState => _categoriesController.state;
   MenuItemsState get itemsState => _itemsController.state;
@@ -401,5 +406,96 @@ class FullMenuController extends GetxController {
     _isPreloaded = false;
     preloadProgress.value = 0.0;
     preloadMessage.value = 'جاري تحميل البيانات...';
+  }
+
+  // Search functionality
+  void filterItems(String query) {
+    if (query.isEmpty) {
+      isSearching.value = false;
+      filteredItems.clear();
+      return;
+    }
+
+    isSearching.value = true;
+    final allItems = items;
+    final queryLower = query.toLowerCase().trim();
+
+    // البحث بأقرب اسم مشابه (fuzzy search)
+    final results = <MenuItem>[];
+    final exactMatches = <MenuItem>[];
+    final startsWithMatches = <MenuItem>[];
+    final containsMatches = <MenuItem>[];
+    final similarMatches = <MenuItem>[];
+
+    for (final item in allItems) {
+      final nameArLower = item.nameAr.toLowerCase();
+      final ennAmeLower = item.ennAme.toLowerCase();
+      final descriptionLower = item.description.toLowerCase();
+
+      // تطابق تام
+      if (nameArLower == queryLower ||
+          ennAmeLower == queryLower ||
+          descriptionLower == queryLower) {
+        exactMatches.add(item);
+      }
+      // يبدأ بالنص
+      else if (nameArLower.startsWith(queryLower) ||
+          ennAmeLower.startsWith(queryLower) ||
+          descriptionLower.startsWith(queryLower)) {
+        startsWithMatches.add(item);
+      }
+      // يحتوي على النص
+      else if (nameArLower.contains(queryLower) ||
+          ennAmeLower.contains(queryLower) ||
+          descriptionLower.contains(queryLower)) {
+        containsMatches.add(item);
+      }
+      // بحث مشابه (fuzzy)
+      else if (_isSimilar(nameArLower, queryLower) ||
+          _isSimilar(ennAmeLower, queryLower) ||
+          _isSimilar(descriptionLower, queryLower)) {
+        similarMatches.add(item);
+      }
+    }
+
+    // ترتيب النتائج حسب الأولوية
+    results.addAll(exactMatches);
+    results.addAll(startsWithMatches);
+    results.addAll(containsMatches);
+    results.addAll(similarMatches);
+
+    filteredItems.value = results;
+  }
+
+  // دالة للبحث المشابه (fuzzy search)
+  bool _isSimilar(String text, String query) {
+    if (text.length < query.length) return false;
+    
+    // حساب المسافة بين النصوص (Levenshtein distance مبسطة)
+    int differences = 0;
+    int queryIndex = 0;
+    
+    for (int i = 0; i < text.length && queryIndex < query.length; i++) {
+      if (text[i] == query[queryIndex]) {
+        queryIndex++;
+      } else {
+        differences++;
+      }
+    }
+    
+    // إذا تم العثور على معظم الأحرف من query في text
+    return queryIndex >= query.length * 0.7 && differences < query.length;
+  }
+
+  void clearSearch() {
+    searchController.clear();
+    isSearching.value = false;
+    filteredItems.clear();
+  }
+
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
   }
 }

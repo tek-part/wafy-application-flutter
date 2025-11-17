@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:wafy/app/routes/app_routes.dart';
 import 'package:wafy/core/theme/colors.dart';
 import 'package:wafy/core/utils/font_constants.dart';
 import 'package:wafy/core/utils/number_formatter.dart';
@@ -11,14 +12,20 @@ import '../controllers/table_details_controller.dart';
 
 class TableInvoicePage extends GetView<TableDetailsController> {
   final int tableId;
+  final String tableName;
 
-  const TableInvoicePage({super.key, required this.tableId});
+  const TableInvoicePage({
+    super.key,
+    required this.tableId,
+    required this.tableName,
+  });
 
   @override
   Widget build(BuildContext context) {
     // تحميل آخر فاتورة للطاولة عند فتح الصفحة
+    // لا نمسح newPendingItems عند فتح صفحة الفاتورة
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.loadLastInvoice(tableId);
+      controller.loadLastInvoice(tableId, clearNewItems: false);
     });
 
     return Scaffold(
@@ -29,6 +36,7 @@ class TableInvoicePage extends GetView<TableDetailsController> {
               padding: EdgeInsets.all(16.w),
               child: CustomAppBar(
                 title: "الفاتورة",
+                showBackButton: true,
                 onPressed: () {
                   Get.back();
                 },
@@ -97,28 +105,62 @@ class TableInvoicePage extends GetView<TableDetailsController> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'رقم الطاولة',
-                        style: FontConstants.cairoStyle(
-                          fontSize: 16.sp,
-                          weight: FontConstants.cairoMedium,
+                      Flexible(
+                        child: Text(
+                          'رقم الطاولة',
+                          style: FontConstants.cairoStyle(
+                            fontSize: 16.sp,
+                            weight: FontConstants.cairoMedium,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      NumText(tableId.toString()),
+                      SizedBox(width: 8.w),
+                      Flexible(
+                        child: Text(
+                          tableName,
+                          style: FontConstants.cairoStyle(
+                            fontSize: 16.sp,
+                            weight: FontConstants.cairoBold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 8.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'عدد العناصر',
-                        style: FontConstants.cairoStyle(
-                          fontSize: 16.sp,
-                          weight: FontConstants.cairoMedium,
+                      Flexible(
+                        child: Text(
+                          'عدد العناصر',
+                          style: FontConstants.cairoStyle(
+                            fontSize: 16.sp,
+                            weight: FontConstants.cairoMedium,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Obx(() => NumText('${controller.pendingItems.length}')),
+                      SizedBox(width: 8.w),
+                      Flexible(
+                        child: Obx(
+                          () => NumText(
+                            '${controller.pendingItems.length}',
+                            style: FontConstants.poppinsStyle(
+                              fontSize: 16.sp,
+                              weight: FontConstants.poppinsBold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -164,17 +206,21 @@ class TableInvoicePage extends GetView<TableDetailsController> {
                   child: Padding(
                     padding: EdgeInsets.all(12.w),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                "${item.itemName} ${item.sizeName != null ? ' - ${item.sizeName}' : ''}",
+                                "${item.itemName}${item.sizeName != null ? ' - ${item.sizeName}' : ''}",
                                 style: FontConstants.cairoStyle(
                                   fontSize: 16.sp,
                                   weight: FontConstants.cairoSemiBold,
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               if (item.sizeName != null) ...[
                                 SizedBox(height: 4.h),
@@ -184,6 +230,8 @@ class TableInvoicePage extends GetView<TableDetailsController> {
                                     fontSize: 12.sp,
                                     color: Colors.grey,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                               if (item.notes != null &&
@@ -195,20 +243,26 @@ class TableInvoicePage extends GetView<TableDetailsController> {
                                     fontSize: 12.sp,
                                     color: Colors.grey,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ],
                           ),
                         ),
+                        SizedBox(width: 8.w),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             NumText(
                               '${NumberFormatter.formatPrice(item.totalPrice)} د.ع',
-                              style: FontConstants.cairoStyle(
+                              style: FontConstants.poppinsStyle(
                                 fontSize: 16.sp,
-                                weight: FontConstants.cairoBold,
+                                weight: FontConstants.poppinsBold,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             SizedBox(height: 4.h),
                             Text(
@@ -217,6 +271,8 @@ class TableInvoicePage extends GetView<TableDetailsController> {
                                 fontSize: 12.sp,
                                 color: Colors.grey,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -235,43 +291,67 @@ class TableInvoicePage extends GetView<TableDetailsController> {
               padding: EdgeInsets.all(16.w),
               child: Column(
                 children: [
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     Flexible(
+                  //       child: Text(
+                  //         'المجموع الفرعي',
+                  //         style: FontConstants.cairoStyle(
+                  //           fontSize: 16.sp,
+                  //           weight: FontConstants.cairoMedium,
+                  //         ),
+                  //         maxLines: 1,
+                  //         overflow: TextOverflow.ellipsis,
+                  //       ),
+                  //     ),
+                  //     SizedBox(width: 8.w),
+                  //     Flexible(
+                  //       child: Obx(
+                  //         () => NumText(
+                  //           '${NumberFormatter.formatPrice(controller.totalPrice)} د.ع',
+                  //           style: FontConstants.poppinsStyle(
+                  //             fontSize: 16.sp,
+                  //             weight: FontConstants.poppinsBold,
+                  //           ),
+                  //           maxLines: 1,
+                  //           overflow: TextOverflow.ellipsis,
+                  //           textAlign: TextAlign.end,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  // SizedBox(height: 8.h),
+                  // Divider(),
+                  SizedBox(height: 8.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'المجموع الفرعي',
-                        style: FontConstants.cairoStyle(
-                          fontSize: 16.sp,
-                          weight: FontConstants.cairoMedium,
-                        ),
-                      ),
-                      Obx(
-                        () => NumText(
-                          '${NumberFormatter.formatPrice(controller.totalPrice)} د.ع',
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  Divider(),
-                  SizedBox(height: 8.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'المجموع الكلي',
-                        style: FontConstants.cairoStyle(
-                          fontSize: 18.sp,
-                          weight: FontConstants.cairoBold,
-                        ),
-                      ),
-                      Obx(
-                        () => NumText(
-                          '${NumberFormatter.formatPrice(controller.totalPrice)} د.ع',
+                      Flexible(
+                        child: Text(
+                          'المجموع الكلي',
                           style: FontConstants.cairoStyle(
-                            fontSize: 20.sp,
+                            fontSize: 18.sp,
                             weight: FontConstants.cairoBold,
-                            color: AppColors.primary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Flexible(
+                        child: Obx(
+                          () => NumText(
+                            '${NumberFormatter.formatPrice(controller.totalPriceAll)} د.ع',
+                            style: FontConstants.poppinsStyle(
+                              fontSize: 20.sp,
+                              weight: FontConstants.poppinsBold,
+                              color: AppColors.primary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
                           ),
                         ),
                       ),
@@ -282,43 +362,76 @@ class TableInvoicePage extends GetView<TableDetailsController> {
             ),
           ),
           SizedBox(height: 20.h),
-          // زر تغيير حالة الطاولة
-          Obx(
-            () => SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: controller.isUpdatingStatus.value
-                    ? null
-                    : () {
-                        _showStatusDialog();
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 12.h),
-                  disabledBackgroundColor: Colors.grey,
-                ),
-                child: controller.isUpdatingStatus.value
-                    ? SizedBox(
-                        height: 20.h,
-                        width: 20.w,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : Text(
-                        'تغيير حالة الطاولة',
-                        style: FontConstants.cairoStyle(
-                          fontSize: 16.sp,
-                          weight: FontConstants.cairoMedium,
-                        ),
-                      ),
+          // زر إضافة عنصر
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {
+                // الانتقال للقائمة مع تمرير tableId وتغيير menuMode إلى addToTable
+                Get.toNamed(
+                  Routes.menu,
+                  arguments: {'tableId': tableId, 'tableName': tableName},
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add, size: 20.sp),
+                  SizedBox(width: 8.w),
+                  Text(
+                    'إضافة طلب جديد',
+                    style: FontConstants.cairoStyle(
+                      fontSize: 16.sp,
+                      weight: FontConstants.cairoMedium,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
+          SizedBox(height: 12.h),
+          // زر تغيير حالة الطاولة
+          // Obx(
+          //   () => SizedBox(
+          //     width: double.infinity,
+          //     child: ElevatedButton(
+          //       onPressed: controller.isUpdatingStatus.value
+          //           ? null
+          //           : () {
+          //               _showStatusDialog();
+          //             },
+          //       style: ElevatedButton.styleFrom(
+          //         backgroundColor: AppColors.primary,
+          //         foregroundColor: Colors.white,
+          //         padding: EdgeInsets.symmetric(vertical: 12.h),
+          //         disabledBackgroundColor: Colors.grey,
+          //       ),
+          //       child: controller.isUpdatingStatus.value
+          //           ? SizedBox(
+          //               height: 20.h,
+          //               width: 20.w,
+          //               child: CircularProgressIndicator(
+          //                 strokeWidth: 2,
+          //                 valueColor: AlwaysStoppedAnimation<Color>(
+          //                   Colors.white,
+          //                 ),
+          //               ),
+          //             )
+          //           : Text(
+          //               'تغيير حالة الطاولة',
+          //               style: FontConstants.cairoStyle(
+          //                 fontSize: 16.sp,
+          //                 weight: FontConstants.cairoMedium,
+          //               ),
+          //             ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
@@ -388,8 +501,8 @@ class TableInvoicePage extends GetView<TableDetailsController> {
   }) {
     return InkWell(
       onTap: () {
-        Get.back();
-        controller.updateTableStatus(status);
+        Get.back(); // إغلاق dialog اختيار الحالة
+        _showConfirmStatusChangeDialog(status, statusName, color);
       },
       child: Container(
         padding: EdgeInsets.all(16.w),
@@ -412,6 +525,86 @@ class TableInvoicePage extends GetView<TableDetailsController> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showConfirmStatusChangeDialog(
+    int status,
+    String statusName,
+    Color color,
+  ) {
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: AppColors.white,
+        title: Text(
+          'تأكيد تغيير الحالة',
+          style: FontConstants.cairoStyle(
+            fontSize: 18.sp,
+            weight: FontConstants.cairoBold,
+            color: AppColors.primary,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'هل أنت متأكد من تغيير حالة الطاولة إلى',
+              style: FontConstants.cairoStyle(fontSize: 16.sp),
+            ),
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: color, width: 2),
+                borderRadius: BorderRadius.circular(8.r),
+                color: color.withOpacity(0.1),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.info_outline, color: color, size: 24.sp),
+                  SizedBox(width: 12.w),
+                  Text(
+                    statusName,
+                    style: FontConstants.cairoStyle(
+                      fontSize: 18.sp,
+                      weight: FontConstants.cairoBold,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              'إلغاء',
+              style: FontConstants.cairoStyle(
+                fontSize: 14.sp,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back(); // إغلاق dialog التأكيد
+              controller.updateTableStatus(status);
+            },
+            child: Text(
+              'تأكيد',
+              style: FontConstants.cairoStyle(
+                fontSize: 14.sp,
+                weight: FontConstants.cairoBold,
+                color: color,
+              ),
+            ),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
     );
   }
 }

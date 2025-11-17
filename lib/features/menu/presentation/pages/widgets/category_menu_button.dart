@@ -25,7 +25,11 @@ class CategoryMenuButton extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(20.r),
+
+          borderRadius: BorderRadius.horizontal(
+            left: Radius.circular(16.r),
+            right: Radius.circular(16.r),
+          ),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.gray,
             width: isSelected ? 2.0 : 1.0,

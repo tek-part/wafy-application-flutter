@@ -22,9 +22,7 @@ class NumText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: AppTypography.poppinsNumberStyle(
-        style?.copyWith(fontSize: style?.fontSize?.sp),
-      ),
+      style: style,
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,

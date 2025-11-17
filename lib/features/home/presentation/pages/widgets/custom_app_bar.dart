@@ -12,6 +12,7 @@ class CustomAppBar extends StatelessWidget {
   final String title;
   final bool hasLogo;
   final bool isHomeScreen;
+  final bool showBackButton;
   final IconData? icon;
   final VoidCallback? onPressed;
 
@@ -20,8 +21,9 @@ class CustomAppBar extends StatelessWidget {
     required this.title,
     this.icon,
     this.onPressed,
-    this.hasLogo = false,
+    this.hasLogo = true,
     this.isHomeScreen = false,
+    this.showBackButton = false,
   });
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,14 @@ class CustomAppBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (hasLogo) Image.asset(AppImages.logoApp, height: 45.h),
+          if (hasLogo)
+            GestureDetector(
+              onTap: () {
+                // استخدام Get.offNamed بدلاً من Get.offAllNamed للحفاظ على الـ controllers المسجلة بشكل permanent
+                Get.offNamed(Routes.home);
+              },
+              child: Image.asset(AppImages.logoApp, height: 45.h),
+            ),
           if (icon != null) Icon(icon, color: AppColors.grayDarker),
           SizedBox(width: 20.w),
           Text(
@@ -63,24 +72,28 @@ class CustomAppBar extends StatelessWidget {
               onPressed: () {
                 Get.toNamed(Routes.settings);
               },
-              icon: Icon(Icons.settings_outlined),
+              icon: Icon(Icons.settings_outlined, size: 20.sp),
             ),
-          if (!isHomeScreen)
-            Obx(() {
-              // التحقق من وجود FullMenuController قبل استخدامه
-              if (Get.isRegistered<FullMenuController>()) {
-                final menuController = Get.find<FullMenuController>();
-                final menuMode = menuController.menuMode.value;
-                if (menuMode == MenuMode.addToTable) {
-                  return IconButton(
-                    onPressed: onPressed,
-                    icon: Icon(Icons.arrow_forward_ios),
-                  );
-                }
-              }
-              // إذا لم يكن مسجلاً أو كان menuMode != addToTable، لا نعرض أي شيء
-              return SizedBox.shrink();
-            }),
+          if (showBackButton)
+            IconButton(
+              onPressed: onPressed,
+              icon: Icon(Icons.arrow_forward_ios, size: 20.sp),
+            ),
+          // Obx(() {
+          //   // التحقق من وجود FullMenuController قبل استخدامه
+          //   if (Get.isRegistered<FullMenuController>()) {
+          //     final menuController = Get.find<FullMenuController>();
+          //     final menuMode = menuController.menuMode.value;
+          //     if (menuMode == MenuMode.addToTable) {
+          //       return IconButton(
+          //         onPressed: onPressed,
+          //         icon: Icon(Icons.arrow_forward_ios),
+          //       );
+          //     }
+          //   }
+          //   // إذا لم يكن مسجلاً أو كان menuMode != addToTable، لا نعرض أي شيء
+          //   return SizedBox.shrink();
+          // }),
         ],
       ),
     );

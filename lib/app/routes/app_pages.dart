@@ -69,7 +69,7 @@ class AppPages {
       page: () {
         final args = Get.arguments as Map<String, dynamic>?;
         final tableId = args?['tableId'] as int? ?? 0;
-        final tableName = args?['tableName'] as String?;
+        final tableName = args?['tableName'] as String? ?? '';
         return TableDetailsPage(tableId: tableId, tableName: tableName);
       },
       binding: TableDetailsBinding(),
@@ -79,8 +79,9 @@ class AppPages {
       name: Routes.tableInvoice,
       page: () {
         final args = Get.arguments as Map<String, dynamic>?;
-        final tableId = args?['tableId'] as int? ?? 0;
-        return TableInvoicePage(tableId: tableId);
+        final tableId = args?['tableId'] as int? ?? 0; 
+        final tableName = args?['tableName'] as String? ?? '';
+        return TableInvoicePage(tableId: tableId, tableName: tableName);
       },
       binding: TableDetailsBinding(),
       middlewares: [AuthMiddleware()],
