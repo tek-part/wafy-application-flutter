@@ -232,19 +232,19 @@ class TablesPage extends GetView<FloorsController> {
                           if (screenWidth > 1200) {
                             // Tablet كبير جداً
                             crossAxisCount = 6;
-                            childAspectRatio = 1.1;
+                            childAspectRatio = 1.5;
                             padding = 20.w;
                             spacing = 20.w;
                           } else if (screenWidth > 900) {
                             // Tablet كبير
                             crossAxisCount = 5;
-                            childAspectRatio = 1.05;
+                            childAspectRatio = 1.5;
                             padding = 18.w;
                             spacing = 18.w;
                           } else {
                             // Tablet صغير
                             crossAxisCount = 2;
-                            childAspectRatio = 0.85;
+                            childAspectRatio = 1.5;
                             padding = 16.w;
                             spacing = 16.w;
                           }

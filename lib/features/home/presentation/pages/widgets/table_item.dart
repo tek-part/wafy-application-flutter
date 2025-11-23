@@ -25,81 +25,164 @@ class TableItem extends StatelessWidget {
             arguments: {'tableId': table.id, 'tableName': table.nameAr},
           );
         },
-        child: Card(
-          color: AppColors.white,
-          elevation: 5,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // صف الحالة والوقت
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Flexible(
-                      child: NumText(
-                        _getTimeDisplay(),
-                        style: FontConstants.poppinsStyle(
-                          fontSize: 16.sp,
-                          color: AppColors.text,
-                          weight: FontConstants.cairoSemiBold,
+        child: (isTablet)
+            ? Card(
+                color: AppColors.white,
+                elevation: 5,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 12.h,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // صف الحالة والوقت
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Flexible(
+                            child: NumText(
+                              _getTimeDisplay(),
+                              style: FontConstants.poppinsStyle(
+                                fontSize: 16.sp,
+                                color: AppColors.text,
+                                weight: FontConstants.cairoSemiBold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(width: 4.w),
+                          // رقم الطاولة
+                          Expanded(
+                            child: Center(
+                              child: NumText(
+                                table.nameAr,
+                                style: FontConstants.poppinsStyle(
+                                  fontSize: 20.sp,
+                                  weight: FontConstants.cairoBold,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 4.w),
+                          Container(
+                            width: 20.w,
+                            height: 20.w,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage(_getStatusImage()),
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 4.h),
+                      // السعر
+                      Flexible(
+                        child: NumText(
+                          '${NumberFormatter.formatPrice(table.total)} د.ع',
+                          style: FontConstants.poppinsStyle(
+                            fontSize: 16.sp,
+                            weight: FontConstants.cairoBold,
+                            color: AppColors.text,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    SizedBox(width: 4.w),
-                    Container(
-                      width: 20.w,
-                      height: 20.w,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage(_getStatusImage()),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.h),
-                // رقم الطاولة
-                Expanded(
-                  child: Center(
-                    child: NumText(
-                      table.nameAr,
-                      style: FontConstants.poppinsStyle(
-                        fontSize: 20.sp,
-                        weight: FontConstants.cairoBold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 4.h),
-                // السعر
-                Flexible(
-                  child: NumText(
-                    '${NumberFormatter.formatPrice(table.total)} د.ع',
-                    style: FontConstants.poppinsStyle(
-                      fontSize: 16.sp,
-                      weight: FontConstants.cairoBold,
-                      color: AppColors.text,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+              )
+            : Card(
+                color: AppColors.white,
+                elevation: 5,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 12.h,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // صف الحالة والوقت
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Flexible(
+                            child: NumText(
+                              _getTimeDisplay(),
+                              style: FontConstants.poppinsStyle(
+                                fontSize: 16.sp,
+                                color: AppColors.text,
+                                weight: FontConstants.cairoSemiBold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(width: 4.w),
+                          Container(
+                            width: 20.w,
+                            height: 20.w,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage(_getStatusImage()),
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 4.h),
+                      // رقم الطاولة
+                      Expanded(
+                        child: Center(
+                          child: NumText(
+                            table.nameAr,
+                            style: FontConstants.poppinsStyle(
+                              fontSize: 20.sp,
+                              weight: FontConstants.cairoBold,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      // السعر
+                      Flexible(
+                        child: NumText(
+                          '${NumberFormatter.formatPrice(table.total)} د.ع',
+                          style: FontConstants.poppinsStyle(
+                            fontSize: 16.sp,
+                            weight: FontConstants.cairoBold,
+                            color: AppColors.text,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
   }

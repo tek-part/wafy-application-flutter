@@ -198,15 +198,15 @@ class TableDetailsController extends GetxController {
 
     print('=== addItemToTable completed ===');
 
-    // إظهار رسالة نجاح باستخدام snackbar
-    Get.snackbar(
-      'نجح',
-      'تم إضافة $itemName بنجاح إلى الفاتورة',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: Duration(seconds: 2),
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
+    // // إظهار رسالة نجاح باستخدام snackbar
+    // Get.snackbar(
+    //   'نجح',
+    //   'تم إضافة $itemName بنجاح إلى الفاتورة',
+    //   snackPosition: SnackPosition.BOTTOM,
+    //   duration: Duration(seconds: 2),
+    //   backgroundColor: Colors.green,
+    //   colorText: Colors.white,
+    // );
   }
 
   void removePendingItem(int index) {

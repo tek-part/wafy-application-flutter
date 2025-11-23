@@ -2,5 +2,6 @@
     "cSpell.words": [
         "Getx",
         "wafy"
-    ]
+    ],
+    "cmake.ignoreCMakeListsMissing": true
 }
