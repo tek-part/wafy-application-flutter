@@ -53,5 +53,20 @@
 		<string>يحتاج التطبيق إلى الموقع للبحث عن الطابعات القريبة.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSExceptionDomains</key>
+			<dict>
+				<key>151.236.164.137</key>
+				<dict>
+					<key>NSExceptionAllowsInsecureHTTPLoads</key>
+					<true/>
+					<key>NSExceptionRequiresForwardSecrecy</key>
+					<false/>
+					<key>NSIncludesSubdomains</key>
+					<false/>
+				</dict>
+			</dict>
+		</dict>
 	</dict>
 </plist>
