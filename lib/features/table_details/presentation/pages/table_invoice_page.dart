@@ -241,7 +241,6 @@ class TableInvoicePage extends GetView<TableDetailsController> {
                                   'ملاحظات: ${item.notes}',
                                   style: FontConstants.cairoStyle(
                                     fontSize: 12.sp,
-                                    color: Colors.grey,
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,

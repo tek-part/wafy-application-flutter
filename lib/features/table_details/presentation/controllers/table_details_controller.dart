@@ -418,16 +418,8 @@ class TableDetailsController extends GetxController {
             await tablesController.refreshTables();
           }
 
-          // الانتقال إلى صفحة الفاتورة (push بدلاً من offNamed)
-          Get.toNamed(
-            Routes.tableInvoice,
-            arguments: {
-              'tableId': targetTableId,
-              'tableName': currentTableName.value.isNotEmpty
-                  ? currentTableName.value
-                  : 'طاولة $targetTableId',
-            },
-          );
+          // الانتقال إلى شاشة الرئيسية (go بدلاً من push)
+          Get.offNamed(Routes.home);
         },
       );
     } catch (e) {
